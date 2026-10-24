@@ -98,7 +98,7 @@
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Bannerlord.ReferenceAssemblies.Core">
-      <Version>1.3.9.103334</Version>
+      <Version>1.4.8.119303</Version>
     </PackageReference>
     <PackageReference Include="Bannerlord.UIExtenderEx">
       <Version>2.13.2</Version>
@@ -124,5 +124,18 @@
     <Copy SourceFiles="ModuleData\Languages\strings_EN.xml" DestinationFolder="$(OutDir)..\..\ModuleData\Languages" />
     <Copy SourceFiles="ModuleData\Languages\JP\language_data.xml" DestinationFolder="$(OutDir)..\..\ModuleData\Languages\JP" />
     <Copy SourceFiles="ModuleData\Languages\JP\strings_JP.xml" DestinationFolder="$(OutDir)..\..\ModuleData\Languages\JP" />
+  </Target>
+  <!-- Opt-in: -p:DeployToMods=true mirrors the built module into the MO2 folder set in Deploy.local.props (gitignored). -->
+  <Import Project="$(MSBuildProjectDirectory)\..\..\Deploy.local.props" Condition="Exists('$(MSBuildProjectDirectory)\..\..\Deploy.local.props')" />
+  <Target Name="DeployToMods" AfterTargets="CopyCustomContent" Condition="'$(DeployToMods)' == 'true'">
+    <Error Condition="'$(ModsDeployDir)' == ''" Text="Set ModsDeployDir in Deploy.local.props to deploy." />
+    <Error Condition="$(ModsDeployDir.Contains('steamapps'))" Text="Refusing to deploy into the game folder." />
+    <ItemGroup>
+      <DeployModuleData Include="ModuleData\**\*.xml" />
+    </ItemGroup>
+    <RemoveDir Directories="$(ModsDeployDir)" />
+    <Copy SourceFiles="SubModule.xml" DestinationFolder="$(ModsDeployDir)" />
+    <Copy SourceFiles="@(DeployModuleData)" DestinationFolder="$(ModsDeployDir)\ModuleData\%(RecursiveDir)" />
+    <Copy SourceFiles="$(OutDir)$(TargetFileName)" DestinationFolder="$(ModsDeployDir)\bin\Win64_Shipping_Client" />
   </Target>
 </Project>
